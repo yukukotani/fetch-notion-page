@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { handleCli, parseArgs } from "./presentation/cli.js";
+import { extractCliArgs, handleCli } from "./presentation/cli.js";
 
 const main = (): void => {
-  const args = parseArgs(process.argv);
+  const args = extractCliArgs(process.argv);
   handleCli(args);
 };
 

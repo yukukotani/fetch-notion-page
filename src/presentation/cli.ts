@@ -1,3 +1,4 @@
+import { parseArgs } from "node:util";
 import { fetchNotionPage } from "../usecase/fetch-notion-page.js";
 
 type CliOptions = {
@@ -5,26 +6,8 @@ type CliOptions = {
   maxDepth?: number | undefined;
 };
 
-function parseCliArgs(args: string[]): {
-  pageId?: string | undefined;
-  options: CliOptions;
-} {
-  const options: CliOptions = {};
-  let pageId: string | undefined;
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (!arg) continue;
-
-    if (arg === "--api-key" || arg === "-k") {
-      options.apiKey = args[i + 1];
-      i++; // skip next argument
-    } else if (arg === "--max-depth" || arg === "-d") {
-      const depth = parseInt(args[i + 1] || "10", 10);
-      options.maxDepth = Number.isNaN(depth) ? 10 : depth;
-      i++; // skip next argument
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(`
+function showHelp(): void {
+  console.log(`
 fetch-notion-page - Fetch all blocks from a Notion page recursively
 
 Usage:
@@ -41,13 +24,58 @@ Options:
 Environment Variables:
   NOTION_API_KEY            Notion API key (required if --api-key not provided)
 `);
-      process.exit(0);
-    } else if (!pageId && !arg.startsWith("-")) {
-      pageId = arg;
-    }
-  }
+}
 
-  return { pageId, options };
+function parseCliArgs(args: string[]): {
+  pageId?: string | undefined;
+  options: CliOptions;
+} {
+  try {
+    const { values, positionals } = parseArgs({
+      args,
+      options: {
+        "api-key": {
+          type: "string",
+          short: "k",
+        },
+        "max-depth": {
+          type: "string",
+          short: "d",
+        },
+        help: {
+          type: "boolean",
+          short: "h",
+        },
+      },
+      allowPositionals: true,
+    });
+
+    if (values.help) {
+      showHelp();
+      process.exit(0);
+    }
+
+    const pageId = positionals[0];
+    const options: CliOptions = {};
+
+    if (values["api-key"]) {
+      options.apiKey = values["api-key"];
+    }
+
+    if (values["max-depth"]) {
+      const depth = parseInt(values["max-depth"], 10);
+      options.maxDepth = Number.isNaN(depth) ? 10 : depth;
+    }
+
+    return { pageId, options };
+  } catch (error) {
+    console.error(
+      "Error parsing arguments:",
+      error instanceof Error ? error.message : error,
+    );
+    showHelp();
+    process.exit(1);
+  }
 }
 
 export async function runCli(args: string[]): Promise<void> {
@@ -94,7 +122,7 @@ export async function runCli(args: string[]): Promise<void> {
   }
 }
 
-export function parseArgs(argv: string[]): string[] {
+export function extractCliArgs(argv: string[]): string[] {
   return argv.slice(2);
 }
 

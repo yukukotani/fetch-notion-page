@@ -4,3 +4,4 @@ export type {
   NotionApiError,
   BuildError,
 } from "./errors.js";
+export type { BuildBlocksOptions } from "../libs/recursive-block-builder.js";

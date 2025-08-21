@@ -7,7 +7,7 @@ export function convertPageToMarkdown(page: PageWithChildren): string {
 
   const title = extractPageTitle(page);
   if (title) {
-    markdownParts.push(`# ${title}\n`);
+    markdownParts.push(`<title>${title}</title>\n`);
   }
 
   if (page.children && page.children.length > 0) {

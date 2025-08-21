@@ -1,12 +1,12 @@
 import { fetchNotionPage } from "../usecase/fetch-notion-page.js";
 
 type CliOptions = {
-  apiKey?: string;
-  maxDepth?: number;
+  apiKey?: string | undefined;
+  maxDepth?: number | undefined;
 };
 
 function parseCliArgs(args: string[]): {
-  pageId?: string;
+  pageId?: string | undefined;
   options: CliOptions;
 } {
   const options: CliOptions = {};
@@ -14,13 +14,14 @@ function parseCliArgs(args: string[]): {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
+    if (!arg) continue;
 
     if (arg === "--api-key" || arg === "-k") {
       options.apiKey = args[i + 1];
       i++; // skip next argument
     } else if (arg === "--max-depth" || arg === "-d") {
       const depth = parseInt(args[i + 1] || "10", 10);
-      options.maxDepth = isNaN(depth) ? 10 : depth;
+      options.maxDepth = Number.isNaN(depth) ? 10 : depth;
       i++; // skip next argument
     } else if (arg === "--help" || arg === "-h") {
       console.log(`

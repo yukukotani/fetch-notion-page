@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { runCli } from "./cli.js";
 
 describe("CLI", () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
-  let processExitSpy: ReturnType<typeof vi.spyOn>;
+  let processExitSpy: any;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -23,7 +23,7 @@ describe("CLI", () => {
   test("ページIDが指定されていない場合にエラーを表示する", async () => {
     try {
       await runCli([]);
-    } catch (error) {
+    } catch (_error) {
       // process.exit が呼ばれることを期待
     }
 
@@ -36,7 +36,7 @@ describe("CLI", () => {
 
     try {
       await runCli(["page-123"]);
-    } catch (error) {
+    } catch (_error) {
       // process.exit が呼ばれることを期待
     }
 
@@ -61,7 +61,7 @@ describe("CLI", () => {
 
     try {
       await runCli(["page-123", "--api-key", "test-key"]);
-    } catch (error) {
+    } catch (_error) {
       // 何もしない
     }
 
@@ -85,7 +85,7 @@ describe("CLI", () => {
 
     try {
       await runCli(["page-123", "--max-depth", "5"]);
-    } catch (error) {
+    } catch (_error) {
       // 何もしない
     }
 
@@ -140,7 +140,7 @@ describe("CLI", () => {
 
     try {
       await runCli(["page-123"]);
-    } catch (error) {
+    } catch (_error) {
       // process.exit が呼ばれることを期待
     }
 

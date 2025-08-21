@@ -1,9 +1,11 @@
 import { parseArgs } from "node:util";
+import { convertPageToMarkdown } from "../libs/markdown-converter.js";
 import { fetchNotionPage } from "../usecase/fetch-notion-page.js";
 
 type CliOptions = {
   apiKey?: string | undefined;
   maxDepth?: number | undefined;
+  format?: "json" | "markdown" | undefined;
 };
 
 function showHelp(): void {
@@ -19,6 +21,7 @@ Arguments:
 Options:
   --api-key, -k <key>       Notion API key (overrides NOTION_API_KEY env var)
   --max-depth, -d <depth>   Maximum depth for recursive block fetching (default: 10)
+  --format, -f <format>     Output format: json (default) or markdown
   --help, -h                Show this help message
 
 Environment Variables:
@@ -41,6 +44,10 @@ function parseCliArgs(args: string[]): {
         "max-depth": {
           type: "string",
           short: "d",
+        },
+        format: {
+          type: "string",
+          short: "f",
         },
         help: {
           type: "boolean",
@@ -65,6 +72,16 @@ function parseCliArgs(args: string[]): {
     if (values["max-depth"]) {
       const depth = parseInt(values["max-depth"], 10);
       options.maxDepth = Number.isNaN(depth) ? 10 : depth;
+    }
+
+    if (values.format) {
+      if (values.format === "json" || values.format === "markdown") {
+        options.format = values.format;
+      } else {
+        throw new Error(
+          `Invalid format: ${values.format}. Must be 'json' or 'markdown'`,
+        );
+      }
     }
 
     return { pageId, options };
@@ -95,6 +112,7 @@ export async function runCli(args: string[]): Promise<void> {
   }
 
   const maxDepth = options.maxDepth ?? 10;
+  const format = options.format ?? "json";
 
   try {
     const fetchResult = await fetchNotionPage(pageId, {
@@ -103,7 +121,12 @@ export async function runCli(args: string[]): Promise<void> {
     });
 
     if (fetchResult.type === "Success") {
-      console.log(JSON.stringify(fetchResult.value, null, 2));
+      if (format === "markdown") {
+        const markdown = convertPageToMarkdown(fetchResult.value);
+        console.log(markdown);
+      } else {
+        console.log(JSON.stringify(fetchResult.value, null, 2));
+      }
     } else {
       console.error(
         JSON.stringify(

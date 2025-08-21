@@ -44,6 +44,7 @@
     "@biomejs/biome": "^2.1.4",
     "@mizchi/lsmcp": "^0.10.0",
     "@power-assert/runtime": "^0.3.0",
+    "@praha/byethrow-mcp": "^0.1.2",
     "@types/node": "^24.2.1",
     "@typescript/native-preview": "7.0.0-dev.20250820.1",
     "@vitest/coverage-v8": "^3.2.4",
@@ -54,5 +55,8 @@
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@praha/byethrow": "^0.6.3"
   }
 }

@@ -1,3 +1,4 @@
+export { convertPageToMarkdown } from "./libs/markdown-converter.js";
 export type {
   BlockWithChildren,
   FetchNotionPageError,

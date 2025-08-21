@@ -9,7 +9,9 @@
             "command": "jq -r '.tool_input.command // \"\"' | grep -q \"^git commit\" && (bun run lint 1>/dev/null; [ $? -eq 1 ] && echo '{\"decision\":\"block\",\"reason\":\"Lint errors found. Fix them before committing.\"}' && exit 2) || true"
           }
         ]
-      },
+      }
+    ],
+    "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit|Update",
         "hooks": [

@@ -1,8 +1,9 @@
 import { Result } from "@praha/byethrow";
-import type { NotionBlockFetcher } from "./notion-block-fetcher.js";
+import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
 import type { BlockWithChildren, BuildError } from "../types/index.js";
+import type { NotionBlockFetcher } from "./notion-block-fetcher.js";
 
-export type BuildBlocksOptions = {
+type BuildBlocksOptions = {
   maxDepth: number;
   currentDepth?: number;
 };
@@ -41,7 +42,7 @@ export async function buildBlockHierarchy(
       const blocks = fetchResult.value;
 
       const childrenResults = await Promise.all(
-        blocks.map(async (block) => {
+        blocks.map(async (block: BlockObjectResponse) => {
           const blockWithChildren: BlockWithChildren = { ...block };
 
           if (block.has_children && currentDepth < options.maxDepth) {
@@ -67,7 +68,7 @@ export async function buildBlockHierarchy(
 
       return childrenResults;
     },
-    catch: (error): BuildError => {
+    catch: (error: unknown): BuildError => {
       if (
         typeof error === "object" &&
         error !== null &&

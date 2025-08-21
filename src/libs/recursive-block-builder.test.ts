@@ -1,8 +1,7 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
-import { Result } from "@praha/byethrow";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
-import type { NotionBlockFetcher } from "./notion-block-fetcher.js";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { BuildError } from "../types/index.js";
+import type { NotionBlockFetcher } from "./notion-block-fetcher.js";
 import { buildBlockHierarchy } from "./recursive-block-builder.js";
 
 const createMockBlock = (
@@ -82,10 +81,10 @@ describe("buildBlockHierarchy", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value).toHaveLength(2);
-      expect(result.value[0]!.id).toBe("block-1");
-      expect(result.value[1]!.id).toBe("block-2");
-      expect(result.value[0]!.children).toBeUndefined();
-      expect(result.value[1]!.children).toBeUndefined();
+      expect(result.value[0]?.id).toBe("block-1");
+      expect(result.value[1]?.id).toBe("block-2");
+      expect(result.value[0]?.children).toBeUndefined();
+      expect(result.value[1]?.children).toBeUndefined();
     }
   });
 
@@ -115,10 +114,10 @@ describe("buildBlockHierarchy", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value).toHaveLength(1);
-      expect(result.value[0]!.id).toBe("parent-1");
-      expect(result.value[0]!.children).toHaveLength(2);
-      expect(result.value[0]!.children![0]!.id).toBe("child-1");
-      expect(result.value[0]!.children![1]!.id).toBe("child-2");
+      expect(result.value[0]?.id).toBe("parent-1");
+      expect(result.value[0]?.children).toHaveLength(2);
+      expect(result.value[0]?.children?.[0]?.id).toBe("child-1");
+      expect(result.value[0]?.children?.[1]?.id).toBe("child-2");
     }
 
     expect(mockFetcher.fetchBlocks).toHaveBeenCalledTimes(2);
@@ -157,12 +156,16 @@ describe("buildBlockHierarchy", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value).toHaveLength(1);
-      expect(result.value[0]!.id).toBe("level1-1");
-      expect(result.value[0]!.children).toHaveLength(1);
-      expect(result.value[0]!.children![0]!.id).toBe("level2-1");
-      expect(result.value[0]!.children![0]!.children).toHaveLength(2);
-      expect(result.value[0]!.children![0]!.children![0]!.id).toBe("level3-1");
-      expect(result.value[0]!.children![0]!.children![1]!.id).toBe("level3-2");
+      expect(result.value[0]?.id).toBe("level1-1");
+      expect(result.value[0]?.children).toHaveLength(1);
+      expect(result.value[0]?.children?.[0]?.id).toBe("level2-1");
+      expect(result.value[0]?.children?.[0]?.children).toHaveLength(2);
+      expect(result.value[0]?.children?.[0]?.children?.[0]?.id).toBe(
+        "level3-1",
+      );
+      expect(result.value[0]?.children?.[0]?.children?.[1]?.id).toBe(
+        "level3-2",
+      );
     }
   });
 
@@ -189,10 +192,10 @@ describe("buildBlockHierarchy", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value).toHaveLength(1);
-      expect(result.value[0]!.id).toBe("level1-1");
-      expect(result.value[0]!.children).toHaveLength(1);
-      expect(result.value[0]!.children![0]!.id).toBe("level2-1");
-      expect(result.value[0]!.children![0]!.children).toBeUndefined();
+      expect(result.value[0]?.id).toBe("level1-1");
+      expect(result.value[0]?.children).toHaveLength(1);
+      expect(result.value[0]?.children?.[0]?.id).toBe("level2-1");
+      expect(result.value[0]?.children?.[0]?.children).toBeUndefined();
     }
 
     expect(mockFetcher.fetchBlocks).toHaveBeenCalledTimes(2);
@@ -267,10 +270,10 @@ describe("buildBlockHierarchy", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value).toHaveLength(2);
-      expect(result.value[0]!.children).toHaveLength(1);
-      expect(result.value[1]!.children).toHaveLength(1);
-      expect(result.value[0]!.children![0]!.id).toBe("child-1-1");
-      expect(result.value[1]!.children![0]!.id).toBe("child-2-1");
+      expect(result.value[0]?.children).toHaveLength(1);
+      expect(result.value[1]?.children).toHaveLength(1);
+      expect(result.value[0]?.children?.[0]?.id).toBe("child-1-1");
+      expect(result.value[1]?.children?.[0]?.id).toBe("child-2-1");
     }
 
     expect(mockFetcher.fetchBlocks).toHaveBeenCalledTimes(3);

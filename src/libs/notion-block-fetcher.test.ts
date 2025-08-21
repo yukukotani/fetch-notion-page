@@ -1,6 +1,6 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
-import { Client } from "@notionhq/client";
+import type { Client } from "@notionhq/client";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { NotionBlockFetcher } from "./notion-block-fetcher.js";
 
 const mockBlockResponse: BlockObjectResponse = {
@@ -71,7 +71,7 @@ describe("NotionBlockFetcher", () => {
         has_more: false,
       };
 
-      (mockClient.blocks!.children!.list as any).mockResolvedValue(
+      (mockClient.blocks?.children?.list as any).mockResolvedValue(
         mockResponse,
       );
 
@@ -96,7 +96,7 @@ describe("NotionBlockFetcher", () => {
         has_more: false,
       };
 
-      (mockClient.blocks!.children!.list as any)
+      (mockClient.blocks?.children?.list as any)
         .mockResolvedValueOnce(mockResponse1)
         .mockResolvedValueOnce(mockResponse2);
 
@@ -105,17 +105,17 @@ describe("NotionBlockFetcher", () => {
       expect(result.type).toBe("Success");
       if (result.type === "Success") {
         expect(result.value).toHaveLength(2);
-        expect(result.value[0]!.id).toBe("block-1");
-        expect(result.value[1]!.id).toBe("block-2");
+        expect(result.value[0]?.id).toBe("block-1");
+        expect(result.value[1]?.id).toBe("block-2");
       }
 
-      expect(mockClient.blocks!.children!.list).toHaveBeenCalledTimes(2);
-      expect(mockClient.blocks!.children!.list).toHaveBeenNthCalledWith(1, {
+      expect(mockClient.blocks?.children?.list).toHaveBeenCalledTimes(2);
+      expect(mockClient.blocks?.children?.list).toHaveBeenNthCalledWith(1, {
         block_id: "block-1",
         start_cursor: undefined,
         page_size: 100,
       });
-      expect(mockClient.blocks!.children!.list).toHaveBeenNthCalledWith(2, {
+      expect(mockClient.blocks?.children?.list).toHaveBeenNthCalledWith(2, {
         block_id: "block-1",
         start_cursor: "cursor-1",
         page_size: 100,
@@ -125,7 +125,7 @@ describe("NotionBlockFetcher", () => {
     test("404エラーを適切に処理する", async () => {
       const error = new Error("Object not found");
       (error as any).code = "object_not_found";
-      (mockClient.blocks!.children!.list as any).mockRejectedValue(error);
+      (mockClient.blocks?.children?.list as any).mockRejectedValue(error);
 
       const result = await fetcher.fetchBlocks("invalid-block-id");
 
@@ -139,7 +139,7 @@ describe("NotionBlockFetcher", () => {
     test("認証エラーを適切に処理する", async () => {
       const error = new Error("Unauthorized");
       (error as any).code = "unauthorized";
-      (mockClient.blocks!.children!.list as any).mockRejectedValue(error);
+      (mockClient.blocks?.children?.list as any).mockRejectedValue(error);
 
       const result = await fetcher.fetchBlocks("block-1");
 
@@ -153,7 +153,7 @@ describe("NotionBlockFetcher", () => {
     test("レート制限エラーを適切に処理する", async () => {
       const error = new Error("Rate limited");
       (error as any).code = "rate_limited";
-      (mockClient.blocks!.children!.list as any).mockRejectedValue(error);
+      (mockClient.blocks?.children?.list as any).mockRejectedValue(error);
 
       const result = await fetcher.fetchBlocks("block-1");
 
@@ -166,7 +166,7 @@ describe("NotionBlockFetcher", () => {
 
     test("ネットワークエラーを適切に処理する", async () => {
       const error = new Error("Network error");
-      (mockClient.blocks!.children!.list as any).mockRejectedValue(error);
+      (mockClient.blocks?.children?.list as any).mockRejectedValue(error);
 
       const result = await fetcher.fetchBlocks("block-1");
 

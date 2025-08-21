@@ -2,7 +2,12 @@
   "name": "fetch-notion-page",
   "description": "A tool to recursively fetch all blocks from a Notion page",
   "version": "1.0.0",
-  "keywords": ["notion", "api", "blocks", "recursive"],
+  "keywords": [
+    "notion",
+    "api",
+    "blocks",
+    "recursive"
+  ],
   "author": "Yuku Kotani (y.kotani@dr-ubie.com)",
   "license": "Apache-2.0",
   "repository": {
@@ -42,11 +47,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.4",
-    "@mizchi/lsmcp": "^0.10.0",
     "@power-assert/runtime": "^0.3.0",
-    "@praha/byethrow-mcp": "^0.1.2",
     "@types/node": "^24.2.1",
-    "@typescript/native-preview": "7.0.0-dev.20250820.1",
     "@vitest/coverage-v8": "^3.2.4",
     "concurrently": "^9.2.0",
     "knip": "^5.62.0",
@@ -58,9 +60,7 @@
   },
   "dependencies": {
     "@notionhq/client": "^4.0.2",
-    "@praha/byethrow": "^0.6.3",
-    "dotenv": "^17.2.1",
-    "gunshi": "^0.26.3"
+    "@praha/byethrow": "^0.6.3"
   },
   "trustedDependencies": [
     "oxc-resolver"

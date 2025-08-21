@@ -1,6 +1,6 @@
-import { Result } from "@praha/byethrow";
 import type { Client } from "@notionhq/client";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
+import { Result } from "@praha/byethrow";
 import type { NotionApiError } from "../types/index.js";
 
 export class NotionBlockFetcher {
@@ -15,11 +15,15 @@ export class NotionBlockFetcher {
         let cursor: string | undefined;
 
         do {
-          const response = await this.client.blocks.children.list({
+          const params: any = {
             block_id: blockId,
-            start_cursor: cursor,
             page_size: 100,
-          });
+          };
+          if (cursor) {
+            params.start_cursor = cursor;
+          }
+
+          const response = await this.client.blocks.children.list(params);
 
           blocks.push(...(response.results as BlockObjectResponse[]));
           cursor = response.next_cursor ?? undefined;
@@ -27,7 +31,7 @@ export class NotionBlockFetcher {
 
         return blocks;
       },
-      catch: (error) => this.handleError(error),
+      catch: (error: unknown) => this.handleError(error),
     });
 
     return wrappedFn();

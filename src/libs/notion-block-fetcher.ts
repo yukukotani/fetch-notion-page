@@ -15,7 +15,11 @@ export class NotionBlockFetcher {
         let cursor: string | undefined;
 
         do {
-          const params: any = {
+          const params: {
+            block_id: string;
+            page_size: number;
+            start_cursor?: string;
+          } = {
             block_id: blockId,
             page_size: 100,
           };
@@ -39,7 +43,7 @@ export class NotionBlockFetcher {
 
   private handleError(error: unknown): NotionApiError {
     if (error instanceof Error && "code" in error) {
-      const code = (error as any).code;
+      const code = (error as { code: string }).code;
       switch (code) {
         case "object_not_found":
           return {

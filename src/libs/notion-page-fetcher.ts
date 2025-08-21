@@ -22,7 +22,7 @@ export class NotionPageFetcher {
 
   private handleError(error: unknown): NotionApiError {
     if (error instanceof Error && "code" in error) {
-      const code = (error as any).code;
+      const code = (error as { code: string }).code;
       switch (code) {
         case "object_not_found":
           return {

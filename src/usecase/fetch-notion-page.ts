@@ -4,7 +4,11 @@ import { Result } from "@praha/byethrow";
 import { NotionBlockFetcher } from "../libs/notion-block-fetcher.js";
 import { NotionPageFetcher } from "../libs/notion-page-fetcher.js";
 import { buildBlockHierarchy } from "../libs/recursive-block-builder.js";
-import type { FetchNotionPageError, PageWithChildren } from "../types/index.js";
+import type {
+  FetchNotionPageError,
+  NotionApiError,
+  PageWithChildren,
+} from "../types/index.js";
 
 type FetchNotionPageOptions = {
   apiKey: string;
@@ -103,7 +107,7 @@ export async function fetchNotionPage(
               typeof buildError.cause === "object" &&
               "kind" in buildError.cause
             ) {
-              const notionError = buildError.cause as any;
+              const notionError = buildError.cause as NotionApiError;
               switch (notionError.kind) {
                 case "page_not_found":
                   throw {

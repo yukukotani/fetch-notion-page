@@ -41,3 +41,6 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+# lsmcp cache
+.lsmcp/cache

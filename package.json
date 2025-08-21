@@ -42,8 +42,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.4",
+    "@mizchi/lsmcp": "^0.10.0",
     "@power-assert/runtime": "^0.3.0",
     "@types/node": "^24.2.1",
+    "@typescript/native-preview": "7.0.0-dev.20250820.1",
     "@vitest/coverage-v8": "^3.2.4",
     "concurrently": "^9.2.0",
     "knip": "^5.62.0",

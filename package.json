@@ -35,7 +35,7 @@
     "fix:knip": "knip --fix --allow-remove-files",
     "fix": "concurrently 'npm:fix:*'",
     "format": "biome format --write .",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "bun run build"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -58,5 +58,8 @@
   },
   "dependencies": {
     "@praha/byethrow": "^0.6.3"
-  }
+  },
+  "trustedDependencies": [
+    "oxc-resolver"
+  ]
 }

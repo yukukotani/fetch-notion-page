@@ -71,9 +71,7 @@
   },
   "dependencies": {
     "@notionhq/client": "^4.0.2",
-    "@praha/byethrow": "^0.6.3",
-    "dotenv": "^17.2.1",
-    "gunshi": "^0.26.3"
+    "@praha/byethrow": "^0.6.3"
   },
   "trustedDependencies": [
     "oxc-resolver"

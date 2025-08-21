@@ -1,5 +1,5 @@
-import { Result } from "@praha/byethrow";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
+import { Result } from "@praha/byethrow";
 import type { BlockWithChildren, BuildError } from "../types/index.js";
 import type { NotionBlockFetcher } from "./notion-block-fetcher.js";
 

@@ -4,3 +4,4 @@ export type {
   FetchNotionPageError,
   NotionApiError,
 } from "./errors.js";
+export type { PageWithChildren } from "./page-with-children.js";

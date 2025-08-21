@@ -1,22 +1,21 @@
-import { Client } from "@notionhq/client";
+import type { Client } from "@notionhq/client";
+import { Client as NotionClient } from "@notionhq/client";
 import { Result } from "@praha/byethrow";
 import { NotionBlockFetcher } from "../libs/notion-block-fetcher.js";
+import { NotionPageFetcher } from "../libs/notion-page-fetcher.js";
 import { buildBlockHierarchy } from "../libs/recursive-block-builder.js";
-import type {
-  BlockWithChildren,
-  FetchNotionPageError,
-} from "../types/index.js";
+import type { FetchNotionPageError, PageWithChildren } from "../types/index.js";
 
 type FetchNotionPageOptions = {
   apiKey: string;
   maxDepth?: number;
-  includePageInfo?: boolean;
+  client?: Client; // テスト用のクライアント注入
 };
 
 export async function fetchNotionPage(
   pageId: string,
   options: FetchNotionPageOptions,
-): Promise<Result.Result<BlockWithChildren[], FetchNotionPageError>> {
+): Promise<Result.Result<PageWithChildren, FetchNotionPageError>> {
   if (!options.apiKey || options.apiKey.trim() === "") {
     return {
       type: "Failure",
@@ -42,10 +41,49 @@ export async function fetchNotionPage(
 
   const wrappedFn = Result.try({
     try: async () => {
-      const client = new Client({ auth: options.apiKey });
-      const fetcher = new NotionBlockFetcher(client);
+      const client =
+        options.client || new NotionClient({ auth: options.apiKey });
+      const blockFetcher = new NotionBlockFetcher(client);
+      const pageFetcher = new NotionPageFetcher(client);
 
-      const buildResult = await buildBlockHierarchy(pageId, fetcher, {
+      // ページ情報を取得
+      const pageResult = await pageFetcher.fetchPage(pageId);
+      if (pageResult.type === "Failure") {
+        const pageError = pageResult.error;
+        switch (pageError.kind) {
+          case "page_not_found":
+            throw {
+              kind: "page_not_found",
+              pageId,
+              message: pageError.message,
+            };
+          case "unauthorized":
+            throw {
+              kind: "unauthorized",
+              message: pageError.message,
+            };
+          case "rate_limited":
+            throw {
+              kind: "rate_limited",
+              message: pageError.message,
+            };
+          case "network_error":
+            throw {
+              kind: "network_error",
+              message: pageError.message,
+              cause: pageError.cause,
+            };
+          default:
+            throw {
+              kind: "unknown",
+              message: pageError.message,
+              cause: pageError,
+            };
+        }
+      }
+
+      // ブロック階層を取得
+      const buildResult = await buildBlockHierarchy(pageId, blockFetcher, {
         maxDepth,
       });
 
@@ -111,7 +149,13 @@ export async function fetchNotionPage(
         }
       }
 
-      return buildResult.value;
+      // ページ情報とブロック階層を組み合わせ
+      const pageWithChildren: PageWithChildren = {
+        ...pageResult.value,
+        children: buildResult.value,
+      };
+
+      return pageWithChildren;
     },
     catch: (error: unknown): FetchNotionPageError => {
       if (

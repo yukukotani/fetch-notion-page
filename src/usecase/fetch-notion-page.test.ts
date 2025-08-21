@@ -1,8 +1,60 @@
 import type { Client } from "@notionhq/client";
-import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
+import type {
+  BlockObjectResponse,
+  PageObjectResponse,
+} from "@notionhq/client/build/src/api-endpoints.js";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { NotionBlockFetcher } from "../libs/notion-block-fetcher.js";
-import { buildBlockHierarchy } from "../libs/recursive-block-builder.js";
+import { fetchNotionPage } from "./fetch-notion-page.js";
+
+const mockPageResponse: PageObjectResponse = {
+  object: "page",
+  id: "page-123",
+  created_time: "2023-01-01T00:00:00.000Z",
+  last_edited_time: "2023-01-01T00:00:00.000Z",
+  created_by: {
+    object: "user",
+    id: "user-1",
+  },
+  last_edited_by: {
+    object: "user",
+    id: "user-1",
+  },
+  cover: null,
+  icon: null,
+  parent: {
+    type: "workspace",
+    workspace: true,
+  },
+  archived: false,
+  in_trash: false,
+  properties: {
+    title: {
+      id: "title",
+      type: "title",
+      title: [
+        {
+          type: "text",
+          text: {
+            content: "テストページ",
+            link: null,
+          },
+          annotations: {
+            bold: false,
+            italic: false,
+            strikethrough: false,
+            underline: false,
+            code: false,
+            color: "default",
+          },
+          plain_text: "テストページ",
+          href: null,
+        },
+      ],
+    },
+  },
+  url: "https://notion.so/test-page",
+  public_url: null,
+};
 
 const mockBlockResponse: BlockObjectResponse = {
   object: "block",
@@ -51,37 +103,49 @@ const mockBlockResponse: BlockObjectResponse = {
 
 describe("fetchNotionPage E2Eテスト", () => {
   let mockClient: Partial<Client>;
-  let fetcher: NotionBlockFetcher;
 
   beforeEach(() => {
     mockClient = {
+      pages: {
+        retrieve: vi.fn(),
+      },
       blocks: {
         children: {
           list: vi.fn(),
         },
       },
     } as any;
-    fetcher = new NotionBlockFetcher(mockClient as Client);
   });
 
-  test("単一ページの取得が成功する", async () => {
+  test("ページとブロックの取得が成功する", async () => {
     const mockBlocks = {
       results: [mockBlockResponse],
       next_cursor: null,
       has_more: false,
     };
 
+    (mockClient.pages?.retrieve as any).mockResolvedValue(mockPageResponse);
     (mockClient.blocks?.children?.list as any).mockResolvedValue(mockBlocks);
 
-    const result = await buildBlockHierarchy("page-123", fetcher, {
+    const result = await fetchNotionPage("page-123", {
+      apiKey: "test-key",
       maxDepth: 10,
+      client: mockClient as Client,
     });
 
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
-      expect(result.value).toHaveLength(1);
-      expect(result.value[0].id).toBe("block-1");
-      expect(result.value[0].type).toBe("paragraph");
+      // ページ情報をチェック
+      expect(result.value.id).toBe("page-123");
+      expect(result.value.object).toBe("page");
+      expect(result.value.properties.title.title[0].plain_text).toBe(
+        "テストページ",
+      );
+
+      // ブロック階層をチェック
+      expect(result.value.children).toHaveLength(1);
+      expect(result.value.children?.[0].id).toBe("block-1");
+      expect(result.value.children?.[0].type).toBe("paragraph");
     }
   });
 
@@ -110,20 +174,23 @@ describe("fetchNotionPage E2Eテスト", () => {
       has_more: false,
     };
 
+    (mockClient.pages?.retrieve as any).mockResolvedValue(mockPageResponse);
     (mockClient.blocks?.children?.list as any)
       .mockResolvedValueOnce(parentBlocks)
       .mockResolvedValueOnce(childBlocks);
 
-    const result = await buildBlockHierarchy("page-123", fetcher, {
+    const result = await fetchNotionPage("page-123", {
+      apiKey: "test-key",
       maxDepth: 10,
+      client: mockClient as Client,
     });
 
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
-      expect(result.value).toHaveLength(1);
-      expect(result.value[0].id).toBe("parent-block");
-      expect(result.value[0].children).toHaveLength(1);
-      expect(result.value[0].children?.[0].id).toBe("child-block");
+      expect(result.value.children).toHaveLength(1);
+      expect(result.value.children?.[0].id).toBe("parent-block");
+      expect(result.value.children?.[0].children).toHaveLength(1);
+      expect(result.value.children?.[0].children?.[0].id).toBe("child-block");
     }
   });
 
@@ -140,30 +207,53 @@ describe("fetchNotionPage E2Eテスト", () => {
       has_more: false,
     };
 
+    (mockClient.pages?.retrieve as any).mockResolvedValue(mockPageResponse);
     (mockClient.blocks?.children?.list as any).mockResolvedValue(mockBlocks);
 
-    const result = await buildBlockHierarchy("page-123", fetcher, {
+    const result = await fetchNotionPage("page-123", {
+      apiKey: "test-key",
       maxDepth: 1,
+      client: mockClient as Client,
     });
 
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
-      expect(result.value).toHaveLength(1);
-      expect(result.value[0].children).toBeUndefined();
+      expect(result.value.children).toHaveLength(1);
+      expect(result.value.children?.[0].children).toBeUndefined();
     }
   });
 
-  test("APIエラーが適切に処理される", async () => {
-    const error = new Error("API error");
-    (mockClient.blocks?.children?.list as any).mockRejectedValue(error);
+  test("ページ取得エラーが適切に処理される", async () => {
+    const error = new Error("Page not found");
+    (error as any).code = "object_not_found";
+    (mockClient.pages?.retrieve as any).mockRejectedValue(error);
 
-    const result = await buildBlockHierarchy("page-123", fetcher, {
+    const result = await fetchNotionPage("page-123", {
+      apiKey: "test-key",
       maxDepth: 10,
+      client: mockClient as Client,
     });
 
     expect(result.type).toBe("Failure");
     if (result.type === "Failure") {
-      expect(result.error.kind).toBe("fetch_failed");
+      expect(result.error.kind).toBe("page_not_found");
+    }
+  });
+
+  test("ブロック取得エラーが適切に処理される", async () => {
+    const error = new Error("API error");
+    (mockClient.pages?.retrieve as any).mockResolvedValue(mockPageResponse);
+    (mockClient.blocks?.children?.list as any).mockRejectedValue(error);
+
+    const result = await fetchNotionPage("page-123", {
+      apiKey: "test-key",
+      maxDepth: 10,
+      client: mockClient as Client,
+    });
+
+    expect(result.type).toBe("Failure");
+    if (result.type === "Failure") {
+      expect(result.error.kind).toBe("network_error");
     }
   });
 
@@ -190,19 +280,22 @@ describe("fetchNotionPage E2Eテスト", () => {
       has_more: false,
     };
 
+    (mockClient.pages?.retrieve as any).mockResolvedValue(mockPageResponse);
     (mockClient.blocks?.children?.list as any)
       .mockResolvedValueOnce(firstPage)
       .mockResolvedValueOnce(secondPage);
 
-    const result = await buildBlockHierarchy("page-123", fetcher, {
+    const result = await fetchNotionPage("page-123", {
+      apiKey: "test-key",
       maxDepth: 10,
+      client: mockClient as Client,
     });
 
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
-      expect(result.value).toHaveLength(2);
-      expect(result.value[0].id).toBe("block-1");
-      expect(result.value[1].id).toBe("block-2");
+      expect(result.value.children).toHaveLength(2);
+      expect(result.value.children?.[0].id).toBe("block-1");
+      expect(result.value.children?.[1].id).toBe("block-2");
     }
 
     expect(mockClient.blocks?.children?.list).toHaveBeenCalledTimes(2);
@@ -255,23 +348,26 @@ describe("fetchNotionPage E2Eテスト", () => {
       has_more: false,
     };
 
+    (mockClient.pages?.retrieve as any).mockResolvedValue(mockPageResponse);
     (mockClient.blocks?.children?.list as any)
       .mockResolvedValueOnce(level1Blocks)
       .mockResolvedValueOnce(level2Blocks)
       .mockResolvedValueOnce(level3Blocks);
 
-    const result = await buildBlockHierarchy("page-123", fetcher, {
+    const result = await fetchNotionPage("page-123", {
+      apiKey: "test-key",
       maxDepth: 10,
+      client: mockClient as Client,
     });
 
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
-      expect(result.value).toHaveLength(1);
-      expect(result.value[0].id).toBe("level1-block");
-      expect(result.value[0].children).toHaveLength(1);
-      expect(result.value[0].children?.[0].id).toBe("level2-block");
-      expect(result.value[0].children?.[0].children).toHaveLength(1);
-      expect(result.value[0].children?.[0].children?.[0].id).toBe(
+      expect(result.value.children).toHaveLength(1);
+      expect(result.value.children?.[0].id).toBe("level1-block");
+      expect(result.value.children?.[0].children).toHaveLength(1);
+      expect(result.value.children?.[0].children?.[0].id).toBe("level2-block");
+      expect(result.value.children?.[0].children?.[0].children).toHaveLength(1);
+      expect(result.value.children?.[0].children?.[0].children?.[0].id).toBe(
         "level3-block",
       );
     }

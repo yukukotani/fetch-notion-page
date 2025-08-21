@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import * as fetchNotionPageModule from "../usecase/fetch-notion-page.js";
 import * as markdownConverterModule from "../libs/markdown-converter.js";
+import * as fetchNotionPageModule from "../usecase/fetch-notion-page.js";
 import { runCli } from "./cli.js";
 
 describe("CLI", () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let processExitSpy: any;
-  let fetchNotionPageSpy: ReturnType<typeof vi.spyOn>;
-  let convertPageToMarkdownSpy: ReturnType<typeof vi.spyOn>;
+  let fetchNotionPageSpy: any;
+  let convertPageToMarkdownSpy: any;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});

@@ -20,5 +20,17 @@
   "files": {
     "includes": ["src/**/*"],
     "ignoreUnknown": true
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test.js"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ]
 }

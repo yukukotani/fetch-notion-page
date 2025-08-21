@@ -7,7 +7,7 @@ export function convertPageToMarkdown(page: PageWithChildren): string {
 
   const title = extractPageTitle(page);
   if (title) {
-    markdownParts.push(`<title>${title}</title>\n`);
+    markdownParts.push(`# ${title}\n`);
   }
 
   if (page.children && page.children.length > 0) {
@@ -438,7 +438,7 @@ function extractRichTextContent(richTextArray: RichTextItemResponse[]): string {
       if (richText.type === "mention" && richText.mention) {
         switch (richText.mention.type) {
           case "user":
-            text = `${text}`;
+            text = `@${text}`;
             break;
           case "date":
             text = `@${text}`;

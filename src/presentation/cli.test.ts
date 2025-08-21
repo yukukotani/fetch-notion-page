@@ -1,16 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { convertPageToMarkdown } from "../libs/markdown-converter.js";
-import { fetchNotionPage } from "../usecase/fetch-notion-page.js";
+import * as fetchNotionPageModule from "../usecase/fetch-notion-page.js";
+import * as markdownConverterModule from "../libs/markdown-converter.js";
 import { runCli } from "./cli.js";
-
-// モジュールをモック
-vi.mock("../usecase/fetch-notion-page.js");
-vi.mock("../libs/markdown-converter.js");
 
 describe("CLI", () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let processExitSpy: any;
+  let fetchNotionPageSpy: ReturnType<typeof vi.spyOn>;
+  let convertPageToMarkdownSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -19,15 +17,19 @@ describe("CLI", () => {
       throw new Error("process.exit called");
     });
 
-    // モックをリセット
-    vi.mocked(fetchNotionPage).mockReset();
-    vi.mocked(convertPageToMarkdown).mockReset();
+    fetchNotionPageSpy = vi.spyOn(fetchNotionPageModule, "fetchNotionPage");
+    convertPageToMarkdownSpy = vi.spyOn(
+      markdownConverterModule,
+      "convertPageToMarkdown",
+    );
   });
 
   afterEach(() => {
     consoleLogSpy.mockRestore();
     consoleErrorSpy.mockRestore();
     processExitSpy.mockRestore();
+    fetchNotionPageSpy.mockRestore();
+    convertPageToMarkdownSpy.mockRestore();
   });
 
   test("ページIDが指定されていない場合にエラーを表示する", async () => {
@@ -57,15 +59,14 @@ describe("CLI", () => {
   });
 
   test("--api-keyオプションが指定された場合に使用する", async () => {
-    const mockFetchNotionPage = vi.mocked(fetchNotionPage);
-    mockFetchNotionPage.mockResolvedValue({
+    fetchNotionPageSpy.mockResolvedValue({
       type: "Success",
       value: [{ id: "block-1", type: "paragraph" }] as any,
     });
 
     await runCli(["page-123", "--api-key", "test-key"]);
 
-    expect(mockFetchNotionPage).toHaveBeenCalledWith("page-123", {
+    expect(fetchNotionPageSpy).toHaveBeenCalledWith("page-123", {
       apiKey: "test-key",
       maxDepth: 10,
     });
@@ -74,15 +75,14 @@ describe("CLI", () => {
   test("--max-depthオプションが指定された場合に使用する", async () => {
     process.env.NOTION_API_KEY = "test-key";
 
-    const mockFetchNotionPage = vi.mocked(fetchNotionPage);
-    mockFetchNotionPage.mockResolvedValue({
+    fetchNotionPageSpy.mockResolvedValue({
       type: "Success",
       value: [{ id: "block-1", type: "paragraph" }] as any,
     });
 
     await runCli(["page-123", "--max-depth", "5"]);
 
-    expect(mockFetchNotionPage).toHaveBeenCalledWith("page-123", {
+    expect(fetchNotionPageSpy).toHaveBeenCalledWith("page-123", {
       apiKey: "test-key",
       maxDepth: 5,
     });
@@ -99,8 +99,7 @@ describe("CLI", () => {
       },
     ];
 
-    const mockFetchNotionPage = vi.mocked(fetchNotionPage);
-    mockFetchNotionPage.mockResolvedValue({
+    fetchNotionPageSpy.mockResolvedValue({
       type: "Success",
       value: mockResponse as any,
     });
@@ -115,8 +114,7 @@ describe("CLI", () => {
   test("エラーレスポンスをJSONエラー形式で出力する", async () => {
     process.env.NOTION_API_KEY = "test-key";
 
-    const mockFetchNotionPage = vi.mocked(fetchNotionPage);
-    mockFetchNotionPage.mockResolvedValue({
+    fetchNotionPageSpy.mockResolvedValue({
       type: "Failure",
       error: {
         kind: "page_not_found",
@@ -161,8 +159,7 @@ describe("CLI", () => {
       children: [{ id: "block-1", type: "paragraph" }],
     };
 
-    const mockFetchNotionPage = vi.mocked(fetchNotionPage);
-    mockFetchNotionPage.mockResolvedValue({
+    fetchNotionPageSpy.mockResolvedValue({
       type: "Success",
       value: mockResponse as any,
     });
@@ -196,20 +193,18 @@ describe("CLI", () => {
       ],
     };
 
-    const mockFetchNotionPage = vi.mocked(fetchNotionPage);
-    mockFetchNotionPage.mockResolvedValue({
+    fetchNotionPageSpy.mockResolvedValue({
       type: "Success",
       value: mockResponse as any,
     });
 
-    const mockConvertPageToMarkdown = vi.mocked(convertPageToMarkdown);
-    mockConvertPageToMarkdown.mockReturnValue(
+    convertPageToMarkdownSpy.mockReturnValue(
       "# テストページ\n\nこれは段落です。",
     );
 
     await runCli(["page-123", "--format", "markdown"]);
 
-    expect(mockConvertPageToMarkdown).toHaveBeenCalledWith(mockResponse);
+    expect(convertPageToMarkdownSpy).toHaveBeenCalledWith(mockResponse);
     expect(consoleLogSpy).toHaveBeenCalledWith(
       "# テストページ\n\nこれは段落です。",
     );

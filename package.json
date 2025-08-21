@@ -57,7 +57,10 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@praha/byethrow": "^0.6.3"
+    "@notionhq/client": "^4.0.2",
+    "@praha/byethrow": "^0.6.3",
+    "dotenv": "^17.2.1",
+    "gunshi": "^0.26.3"
   },
   "trustedDependencies": [
     "oxc-resolver"

@@ -17,10 +17,21 @@
   "homepage": "https://github.com/yukukotani/fetch-notion-page",
   "bugs": "https://github.com/yukukotani/fetch-notion-page/issues",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "bin": "dist/index.js",
+  "main": "dist/lib.js",
+  "module": "dist/lib.js",
+  "types": "dist/lib.d.ts",
+  "bin": {
+    "fetch-notion-page": "dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "import": "./dist/lib.js",
+      "require": "./dist/lib.js",
+      "default": "./dist/lib.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "package.json"

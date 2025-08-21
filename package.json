@@ -17,18 +17,18 @@
   "homepage": "https://github.com/yukukotani/fetch-notion-page",
   "bugs": "https://github.com/yukukotani/fetch-notion-page/issues",
   "type": "module",
-  "main": "dist/lib.js",
-  "module": "dist/lib.js",
-  "types": "dist/lib.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "fetch-notion-page": "dist/index.js"
+    "fetch-notion-page": "dist/cli.js"
   },
   "exports": {
     ".": {
-      "types": "./dist/lib.d.ts",
-      "import": "./dist/lib.js",
-      "require": "./dist/lib.js",
-      "default": "./dist/lib.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -38,8 +38,8 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "dev": "tsx src/index.ts",
-    "start": "node dist/index.js",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",

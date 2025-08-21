@@ -96,7 +96,7 @@ function runCli(
       childEnv.NOTION_API_KEY = env.NOTION_API_KEY;
     }
 
-    const child = spawn("npx", ["tsx", "src/index.ts", ...args], {
+    const child = spawn("npx", ["tsx", "src/cli.ts", ...args], {
       env: childEnv,
       stdio: ["pipe", "pipe", "pipe"],
     });

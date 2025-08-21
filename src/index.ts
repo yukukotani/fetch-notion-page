@@ -1,10 +1,5 @@
-#!/usr/bin/env node
-
-import { handleCli, parseArgs } from "./presentation/cli.js";
-
-const main = (): void => {
-  const args = parseArgs(process.argv);
-  handleCli(args);
-};
-
-main();
+export type {
+  BlockWithChildren,
+  FetchNotionPageError,
+} from "./types/index.js";
+export { fetchNotionPage } from "./usecase/fetch-notion-page.js";

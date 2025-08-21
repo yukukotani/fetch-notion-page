@@ -1,16 +1,16 @@
 {
-  "name": "typescript-template",
-  "description": "TypeScript template for Coding AI Agent",
+  "name": "fetch-notion-page",
+  "description": "A tool to recursively fetch all blocks from a Notion page",
   "version": "1.0.0",
-  "keywords": [],
+  "keywords": ["notion", "api", "blocks", "recursive"],
   "author": "Yuku Kotani (y.kotani@dr-ubie.com)",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yukukotani/mcp-gcloud-adc-proxy"
+    "url": "https://github.com/yukukotani/fetch-notion-page"
   },
-  "homepage": "https://github.com/yukukotani/mcp-gcloud-adc-proxy",
-  "bugs": "https://github.com/yukukotani/mcp-gcloud-adc-proxy/issues",
+  "homepage": "https://github.com/yukukotani/fetch-notion-page",
+  "bugs": "https://github.com/yukukotani/fetch-notion-page/issues",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",

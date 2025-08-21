@@ -39,7 +39,9 @@ describe("CLI", () => {
       // process.exit が呼ばれることを期待
     }
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Error: Page ID is required");
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Error: Valid Notion page ID or URL is required",
+    );
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
@@ -47,7 +49,7 @@ describe("CLI", () => {
     delete process.env.NOTION_API_KEY;
 
     try {
-      await runCli(["page-123"]);
+      await runCli(["12345678901234567890123456789012"]);
     } catch (_error) {
       // process.exit が呼ばれることを期待
     }
@@ -64,12 +66,15 @@ describe("CLI", () => {
       value: [{ id: "block-1", type: "paragraph" }] as any,
     });
 
-    await runCli(["page-123", "--api-key", "test-key"]);
+    await runCli(["12345678901234567890123456789012", "--api-key", "test-key"]);
 
-    expect(fetchNotionPageSpy).toHaveBeenCalledWith("page-123", {
-      apiKey: "test-key",
-      maxDepth: 10,
-    });
+    expect(fetchNotionPageSpy).toHaveBeenCalledWith(
+      "12345678901234567890123456789012",
+      {
+        apiKey: "test-key",
+        maxDepth: 10,
+      },
+    );
   });
 
   test("--max-depthオプションが指定された場合に使用する", async () => {
@@ -80,12 +85,15 @@ describe("CLI", () => {
       value: [{ id: "block-1", type: "paragraph" }] as any,
     });
 
-    await runCli(["page-123", "--max-depth", "5"]);
+    await runCli(["12345678901234567890123456789012", "--max-depth", "5"]);
 
-    expect(fetchNotionPageSpy).toHaveBeenCalledWith("page-123", {
-      apiKey: "test-key",
-      maxDepth: 5,
-    });
+    expect(fetchNotionPageSpy).toHaveBeenCalledWith(
+      "12345678901234567890123456789012",
+      {
+        apiKey: "test-key",
+        maxDepth: 5,
+      },
+    );
   });
 
   test("正常なレスポンスをJSON形式で出力する", async () => {
@@ -104,7 +112,7 @@ describe("CLI", () => {
       value: mockResponse as any,
     });
 
-    await runCli(["page-123"]);
+    await runCli(["12345678901234567890123456789012"]);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       JSON.stringify(mockResponse, null, 2),
@@ -118,13 +126,13 @@ describe("CLI", () => {
       type: "Failure",
       error: {
         kind: "page_not_found",
-        pageId: "page-123",
+        pageId: "12345678901234567890123456789012",
         message: "Page not found",
       } as any,
     });
 
     try {
-      await runCli(["page-123"]);
+      await runCli(["12345678901234567890123456789012"]);
     } catch (_error) {
       // process.exit が呼ばれることを期待
     }
@@ -134,7 +142,7 @@ describe("CLI", () => {
         {
           error: {
             kind: "page_not_found",
-            pageId: "page-123",
+            pageId: "12345678901234567890123456789012",
             message: "Page not found",
           },
         },
@@ -164,7 +172,7 @@ describe("CLI", () => {
       value: mockResponse as any,
     });
 
-    await runCli(["page-123", "--format", "json"]);
+    await runCli(["12345678901234567890123456789012", "--format", "json"]);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       JSON.stringify(mockResponse, null, 2),
@@ -202,7 +210,7 @@ describe("CLI", () => {
       "# テストページ\n\nこれは段落です。",
     );
 
-    await runCli(["page-123", "--format", "markdown"]);
+    await runCli(["12345678901234567890123456789012", "--format", "markdown"]);
 
     expect(convertPageToMarkdownSpy).toHaveBeenCalledWith(mockResponse);
     expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -212,7 +220,7 @@ describe("CLI", () => {
 
   test("無効な--formatオプションが指定された場合にエラーを表示する", async () => {
     try {
-      await runCli(["page-123", "--format", "invalid"]);
+      await runCli(["12345678901234567890123456789012", "--format", "invalid"]);
     } catch (_error) {
       // process.exit が呼ばれることを期待
     }
@@ -220,6 +228,80 @@ describe("CLI", () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Error parsing arguments:",
       "Invalid format: invalid. Must be 'json' or 'markdown'",
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+
+  test("新形式のNotion URLが指定された場合にページIDを抽出して処理する", async () => {
+    process.env.NOTION_API_KEY = "test-key";
+
+    fetchNotionPageSpy.mockResolvedValue({
+      type: "Success",
+      value: [{ id: "block-1", type: "paragraph" }] as any,
+    });
+
+    await runCli([
+      "https://www.notion.so/My-Page-Title-12345678901234567890123456789012",
+    ]);
+
+    expect(fetchNotionPageSpy).toHaveBeenCalledWith(
+      "12345678901234567890123456789012",
+      {
+        apiKey: "test-key",
+        maxDepth: 10,
+      },
+    );
+  });
+
+  test("旧形式のNotion URLが指定された場合にページIDを抽出して処理する", async () => {
+    process.env.NOTION_API_KEY = "test-key";
+
+    fetchNotionPageSpy.mockResolvedValue({
+      type: "Success",
+      value: [{ id: "block-1", type: "paragraph" }] as any,
+    });
+
+    await runCli([
+      "https://www.notion.so/workspace/12345678901234567890123456789012?pvs=4",
+    ]);
+
+    expect(fetchNotionPageSpy).toHaveBeenCalledWith(
+      "12345678901234567890123456789012",
+      {
+        apiKey: "test-key",
+        maxDepth: 10,
+      },
+    );
+  });
+
+  test("直接リンク形式のNotion URLが指定された場合にページIDを抽出して処理する", async () => {
+    process.env.NOTION_API_KEY = "test-key";
+
+    fetchNotionPageSpy.mockResolvedValue({
+      type: "Success",
+      value: [{ id: "block-1", type: "paragraph" }] as any,
+    });
+
+    await runCli(["https://notion.so/12345678901234567890123456789012"]);
+
+    expect(fetchNotionPageSpy).toHaveBeenCalledWith(
+      "12345678901234567890123456789012",
+      {
+        apiKey: "test-key",
+        maxDepth: 10,
+      },
+    );
+  });
+
+  test("無効なURLが指定された場合にエラーを表示する", async () => {
+    try {
+      await runCli(["https://example.com/invalid"]);
+    } catch (_error) {
+      // process.exit が呼ばれることを期待
+    }
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Error: Valid Notion page ID or URL is required",
     );
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });

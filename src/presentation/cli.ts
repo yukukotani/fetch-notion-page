@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import { convertPageToMarkdown } from "../libs/markdown-converter.js";
+import { extractPageIdFromUrl } from "../libs/notion-url-parser.js";
 import { fetchNotionPage } from "../usecase/fetch-notion-page.js";
 
 type CliOptions = {
@@ -13,10 +14,14 @@ function showHelp(): void {
 fetch-notion-page - Fetch all blocks from a Notion page recursively
 
 Usage:
-  fetch-notion-page <page-id> [options]
+  fetch-notion-page <page-id-or-url> [options]
 
 Arguments:
-  page-id                    Notion page ID to fetch
+  page-id-or-url            Notion page ID or URL to fetch
+                            Examples:
+                            - 12345678901234567890123456789012
+                            - https://www.notion.so/My-Page-12345678901234567890123456789012
+                            - https://notion.so/12345678901234567890123456789012
 
 Options:
   --api-key, -k <key>       Notion API key (overrides NOTION_API_KEY env var)
@@ -62,7 +67,7 @@ function parseCliArgs(args: string[]): {
       process.exit(0);
     }
 
-    const pageId = positionals[0];
+    const pageIdOrUrl = positionals[0];
     const options: CliOptions = {};
 
     if (values["api-key"]) {
@@ -84,6 +89,11 @@ function parseCliArgs(args: string[]): {
       }
     }
 
+    // ページIDまたはURLからページIDを抽出
+    const pageId = pageIdOrUrl
+      ? extractPageIdFromUrl(pageIdOrUrl) || undefined
+      : undefined;
+
     return { pageId, options };
   } catch (error) {
     console.error(
@@ -100,7 +110,13 @@ export async function runCli(args: string[]): Promise<void> {
 
   // Page ID validation
   if (!pageId) {
-    console.error("Error: Page ID is required");
+    console.error("Error: Valid Notion page ID or URL is required");
+    console.error("Please provide a Notion page ID or URL.");
+    console.error("Examples:");
+    console.error("  - 12345678901234567890123456789012");
+    console.error(
+      "  - https://www.notion.so/My-Page-12345678901234567890123456789012",
+    );
     process.exit(1);
   }
 

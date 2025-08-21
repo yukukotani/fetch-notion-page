@@ -145,7 +145,10 @@ function convertBlockToMarkdown(
     case "audio": {
       if (block.audio) {
         const url = getFileUrl(block.audio);
-        markdown = `[🎵 Audio](${url})`;
+        const caption = block.audio.caption
+          ? extractRichTextContent(block.audio.caption)
+          : "Audio";
+        markdown = `[${caption}](${url})`;
       }
       break;
     }
@@ -153,7 +156,10 @@ function convertBlockToMarkdown(
     case "video": {
       if (block.video) {
         const url = getFileUrl(block.video);
-        markdown = `[🎬 Video](${url})`;
+        const caption = block.video.caption
+          ? extractRichTextContent(block.video.caption)
+          : "Video";
+        markdown = `[${caption}](${url})`;
       }
       break;
     }
@@ -163,8 +169,8 @@ function convertBlockToMarkdown(
         const url = getFileUrl(block.pdf);
         const caption = block.pdf.caption
           ? extractRichTextContent(block.pdf.caption)
-          : "";
-        markdown = caption ? `[📄 ${caption}](${url})` : `[📄 PDF](${url})`;
+          : "PDF";
+        markdown = `[${caption}](${url})`;
       }
       break;
     }
@@ -174,9 +180,8 @@ function convertBlockToMarkdown(
         const url = getFileUrl(block.file);
         const caption = block.file.caption
           ? extractRichTextContent(block.file.caption)
-          : "";
-        const name = block.file.name || "File";
-        markdown = caption ? `[📎 ${caption}](${url})` : `[📎 ${name}](${url})`;
+          : "File";
+        markdown = `[${caption}](${url})`;
       }
       break;
     }
@@ -211,23 +216,17 @@ function convertBlockToMarkdown(
     }
 
     case "link_preview": {
-      if (block.link_preview?.url) {
-        markdown = `[🔗 Link Preview](${block.link_preview.url})`;
-      }
+      markdown = `[${block.link_preview.url}](${block.link_preview.url})`;
       break;
     }
 
     case "child_page": {
-      if (block.child_page?.title) {
-        markdown = `📄 ${block.child_page.title}`;
-      }
+      markdown = `<page id="${block.id}" title="${block.child_page.title}" />`;
       break;
     }
 
     case "child_database": {
-      if (block.child_database?.title) {
-        markdown = `🗃️ ${block.child_database.title}`;
-      }
+      markdown = `<database id="${block.id}" title="${block.child_database.title}" />`;
       break;
     }
 
@@ -451,6 +450,9 @@ function extractRichTextContent(richTextArray: RichTextItemResponse[]): string {
             break;
           case "link_preview":
             text = `@${text}`;
+            break;
+          case "link_mention":
+            text = `${richText.mention.link_mention.title || text}`;
             break;
           default:
             text = `@${text}`;

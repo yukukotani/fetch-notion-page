@@ -308,19 +308,27 @@ function convertBlockToMarkdown(
     block.type !== "column_list" &&
     block.type !== "synced_block"
   ) {
+    // リストアイテム系のブロックの場合は改行を調整
+    const isListItem =
+      block.type === "bulleted_list_item" ||
+      block.type === "numbered_list_item" ||
+      block.type === "to_do";
+
+    const separator = isListItem ? "\n" : "\n\n";
     const childrenMarkdown = block.children
       .map((child, childIndex) =>
         convertBlockToMarkdown(child, depth + 1, childIndex),
       )
       .filter((childMarkdown) => childMarkdown.trim() !== "")
-      .join("\n\n");
+      .join(separator);
 
     if (childrenMarkdown.trim()) {
       if (block.type === "toggle") {
         markdown += `\n${childrenMarkdown}\n</details>`;
       } else {
+        const connector = isListItem ? "\n" : "\n\n";
         markdown = markdown
-          ? `${markdown}\n\n${childrenMarkdown}`
+          ? `${markdown}${connector}${childrenMarkdown}`
           : childrenMarkdown;
       }
     }

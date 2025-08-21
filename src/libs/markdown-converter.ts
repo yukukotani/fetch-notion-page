@@ -131,13 +131,184 @@ function convertBlockToMarkdown(
       break;
     }
 
+    case "image": {
+      if (block.image) {
+        const url = getFileUrl(block.image);
+        const caption = block.image.caption
+          ? extractRichTextContent(block.image.caption)
+          : "";
+        markdown = caption ? `![${caption}](${url})` : `![](${url})`;
+      }
+      break;
+    }
+
+    case "audio": {
+      if (block.audio) {
+        const url = getFileUrl(block.audio);
+        markdown = `[🎵 Audio](${url})`;
+      }
+      break;
+    }
+
+    case "video": {
+      if (block.video) {
+        const url = getFileUrl(block.video);
+        markdown = `[🎬 Video](${url})`;
+      }
+      break;
+    }
+
+    case "pdf": {
+      if (block.pdf) {
+        const url = getFileUrl(block.pdf);
+        const caption = block.pdf.caption
+          ? extractRichTextContent(block.pdf.caption)
+          : "";
+        markdown = caption ? `[📄 ${caption}](${url})` : `[📄 PDF](${url})`;
+      }
+      break;
+    }
+
+    case "file": {
+      if (block.file) {
+        const url = getFileUrl(block.file);
+        const caption = block.file.caption
+          ? extractRichTextContent(block.file.caption)
+          : "";
+        const name = block.file.name || "File";
+        markdown = caption ? `[📎 ${caption}](${url})` : `[📎 ${name}](${url})`;
+      }
+      break;
+    }
+
+    case "table": {
+      if (block.type === "table" && block.table && block.children) {
+        markdown = convertTableToMarkdown(block);
+      }
+      break;
+    }
+
+    case "table_row": {
+      // Table rowは単独では処理せず、親のTableブロックで処理される
+      break;
+    }
+
+    case "bookmark": {
+      if (block.bookmark?.url) {
+        const caption = block.bookmark.caption
+          ? extractRichTextContent(block.bookmark.caption)
+          : "Bookmark";
+        markdown = `[🔖 ${caption}](${block.bookmark.url})`;
+      }
+      break;
+    }
+
+    case "embed": {
+      if (block.embed?.url) {
+        markdown = `[🔗 Embed](${block.embed.url})`;
+      }
+      break;
+    }
+
+    case "link_preview": {
+      if (block.link_preview?.url) {
+        markdown = `[🔗 Link Preview](${block.link_preview.url})`;
+      }
+      break;
+    }
+
+    case "child_page": {
+      if (block.child_page?.title) {
+        markdown = `📄 ${block.child_page.title}`;
+      }
+      break;
+    }
+
+    case "child_database": {
+      if (block.child_database?.title) {
+        markdown = `🗃️ ${block.child_database.title}`;
+      }
+      break;
+    }
+
+    case "column_list": {
+      if (block.children) {
+        markdown = convertColumnListToMarkdown(block);
+      }
+      break;
+    }
+
+    case "column": {
+      // Columnは単独では処理せず、親のColumn listブロックで処理される
+      break;
+    }
+
+    case "synced_block": {
+      if (block.synced_block) {
+        if (block.synced_block.synced_from === null) {
+          // Original synced block
+          const markdownParts = ["<!-- Synced Block (Original) -->"];
+
+          if (block.children && block.children.length > 0) {
+            const childrenMarkdown = block.children
+              .map((child, childIndex) =>
+                convertBlockToMarkdown(child, depth, childIndex),
+              )
+              .filter((childMarkdown) => childMarkdown.trim() !== "")
+              .join("\n\n");
+
+            if (childrenMarkdown.trim()) {
+              markdownParts.push(childrenMarkdown);
+            }
+          }
+
+          markdown = markdownParts.join("\n\n");
+        } else if (block.synced_block.synced_from?.block_id) {
+          // Duplicate synced block
+          markdown = `<!-- Synced Block (Reference to: ${block.synced_block.synced_from.block_id}) -->`;
+        }
+      }
+      break;
+    }
+
+    case "equation": {
+      if (block.equation?.expression) {
+        markdown = `$$${block.equation.expression}$$`;
+      }
+      break;
+    }
+
+    case "breadcrumb": {
+      markdown = "<!-- Breadcrumb -->";
+      break;
+    }
+
+    case "table_of_contents": {
+      markdown = "<!-- Table of Contents -->";
+      break;
+    }
+
+    case "template": {
+      if (block.template) {
+        const title = extractRichTextContent(block.template.rich_text || []);
+        markdown = `<!-- Template: ${title} -->`;
+      }
+      break;
+    }
+
     default: {
       // 他のブロックタイプは基本的なテキストのみ表示
       break;
     }
   }
 
-  if (block.children && block.children.length > 0) {
+  if (
+    block.children &&
+    block.children.length > 0 &&
+    block.type !== "table" &&
+    block.type !== "column_list" &&
+    block.type !== "synced_block"
+  ) {
     const childrenMarkdown = block.children
       .map((child, childIndex) =>
         convertBlockToMarkdown(child, depth + 1, childIndex),
@@ -159,10 +330,137 @@ function convertBlockToMarkdown(
   return markdown;
 }
 
+function convertColumnListToMarkdown(
+  columnListBlock: BlockWithChildren,
+): string {
+  if (!columnListBlock.children) {
+    return "";
+  }
+
+  const columns = columnListBlock.children.filter(
+    (child) => child.type === "column",
+  );
+  if (columns.length === 0) {
+    return "";
+  }
+
+  const columnMarkdowns: string[] = [];
+
+  columns.forEach((column, index) => {
+    const columnContent: string[] = [];
+
+    // カラムのヘッダーコメント
+    columnContent.push(`<!-- Column ${index + 1} -->`);
+
+    if (column.children && column.children.length > 0) {
+      const childrenMarkdown = column.children
+        .map((child, childIndex) =>
+          convertBlockToMarkdown(child, 0, childIndex),
+        )
+        .filter((markdown) => markdown.trim() !== "")
+        .join("\n\n");
+
+      if (childrenMarkdown.trim()) {
+        columnContent.push(childrenMarkdown);
+      }
+    }
+
+    if (columnContent.length > 1) {
+      columnMarkdowns.push(columnContent.join("\n\n"));
+    }
+  });
+
+  return columnMarkdowns.join("\n\n");
+}
+
+function convertTableToMarkdown(tableBlock: BlockWithChildren): string {
+  if (
+    tableBlock.type !== "table" ||
+    !tableBlock.table ||
+    !tableBlock.children
+  ) {
+    return "";
+  }
+
+  const tableRows = tableBlock.children.filter(
+    (child) => child.type === "table_row",
+  );
+  if (tableRows.length === 0) {
+    return "";
+  }
+
+  const markdownRows: string[] = [];
+  const hasColumnHeader = tableBlock.table.has_column_header || false;
+
+  tableRows.forEach((row, rowIndex) => {
+    if (row.type === "table_row" && row.table_row?.cells) {
+      const cells = row.table_row.cells.map((cell) => {
+        const cellContent = extractRichTextContent(cell);
+        // テーブル内の | をエスケープ
+        return cellContent.replace(/\|/g, "\\|");
+      });
+
+      const markdownRow = `| ${cells.join(" | ")} |`;
+      markdownRows.push(markdownRow);
+
+      // 最初の行の後にヘッダー区切り線を追加（列ヘッダーがある場合）
+      if (rowIndex === 0 && hasColumnHeader) {
+        const separatorCells = cells.map(() => "---");
+        const separatorRow = `| ${separatorCells.join(" | ")} |`;
+        markdownRows.push(separatorRow);
+      }
+    }
+  });
+
+  return markdownRows.join("\n");
+}
+
+function getFileUrl(fileObject: {
+  type: string;
+  external?: { url: string };
+  file?: { url: string };
+}): string {
+  if (fileObject.type === "external" && fileObject.external?.url) {
+    return fileObject.external.url;
+  }
+  if (fileObject.type === "file" && fileObject.file?.url) {
+    return fileObject.file.url;
+  }
+  return "";
+}
+
 function extractRichTextContent(richTextArray: RichTextItemResponse[]): string {
   return richTextArray
     .map((richText) => {
-      const text = richText.plain_text || "";
+      let text = richText.plain_text || "";
+
+      // Mentionの処理
+      if (richText.type === "mention" && richText.mention) {
+        switch (richText.mention.type) {
+          case "user":
+            text = `@${text}`;
+            break;
+          case "date":
+            text = `@${text}`;
+            break;
+          case "page":
+            text = `@${text}`;
+            break;
+          case "database":
+            text = `@${text}`;
+            break;
+          case "link_preview":
+            text = `@${text}`;
+            break;
+          default:
+            text = `@${text}`;
+        }
+      }
+
+      // リンクの処理（アノテーションの前に処理）
+      if (richText.href) {
+        text = `[${text}](${richText.href})`;
+      }
 
       if (richText.annotations) {
         let formattedText = text;
@@ -176,8 +474,17 @@ function extractRichTextContent(richTextArray: RichTextItemResponse[]): string {
         if (richText.annotations.strikethrough) {
           formattedText = `~~${formattedText}~~`;
         }
+        if (richText.annotations.underline) {
+          formattedText = `<u>${formattedText}</u>`;
+        }
         if (richText.annotations.code) {
           formattedText = `\`${formattedText}\``;
+        }
+        if (
+          richText.annotations.color &&
+          richText.annotations.color !== "default"
+        ) {
+          formattedText = `<span style="color: ${richText.annotations.color.replace("_background", "")}">${formattedText}</span>`;
         }
 
         return formattedText;

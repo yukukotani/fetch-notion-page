@@ -1318,9 +1318,7 @@ describe("markdown-converter", () => {
 
       const result = convertPageToMarkdown(page);
 
-      expect(result).toBe(
-        "# テストページ\n\nタスクの担当者は @田中太郎 です。",
-      );
+      expect(result).toBe("# テストページ\n\nタスクの担当者は 田中太郎 です。");
     });
   });
 });

@@ -438,7 +438,7 @@ function extractRichTextContent(richTextArray: RichTextItemResponse[]): string {
       if (richText.type === "mention" && richText.mention) {
         switch (richText.mention.type) {
           case "user":
-            text = `@${text}`;
+            text = `${text}`;
             break;
           case "date":
             text = `@${text}`;

@@ -1,7 +1,7 @@
 {
   "name": "fetch-notion-page",
   "description": "A tool to recursively fetch all blocks from a Notion page",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "keywords": [
     "notion",
     "api",

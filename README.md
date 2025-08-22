@@ -19,6 +19,9 @@ npm install fetch-notion-page
 
 ## Usage
 
+> [!TIP]
+> Wanna use this as a MCP server? Check out [monoread](https://github.com/yukukotani/monoread)
+
 ### CLI Usage
 
 ```bash

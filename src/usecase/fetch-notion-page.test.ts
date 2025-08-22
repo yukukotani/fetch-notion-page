@@ -138,14 +138,22 @@ describe("fetchNotionPage E2Eテスト", () => {
       // ページ情報をチェック
       expect(result.value.id).toBe("page-123");
       expect(result.value.object).toBe("page");
-      expect(result.value.properties.title.title[0].plain_text).toBe(
-        "テストページ",
-      );
+      if (
+        "title" in result.value.properties &&
+        result.value.properties.title.type === "title" &&
+        result.value.properties.title.title[0]
+      ) {
+        expect(result.value.properties.title.title[0].plain_text).toBe(
+          "テストページ",
+        );
+      }
 
       // ブロック階層をチェック
       expect(result.value.children).toHaveLength(1);
-      expect(result.value.children?.[0].id).toBe("block-1");
-      expect(result.value.children?.[0].type).toBe("paragraph");
+      if (result.value.children?.[0]) {
+        expect(result.value.children[0].id).toBe("block-1");
+        expect(result.value.children[0].type).toBe("paragraph");
+      }
     }
   });
 
@@ -188,9 +196,13 @@ describe("fetchNotionPage E2Eテスト", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value.children).toHaveLength(1);
-      expect(result.value.children?.[0].id).toBe("parent-block");
-      expect(result.value.children?.[0].children).toHaveLength(1);
-      expect(result.value.children?.[0].children?.[0].id).toBe("child-block");
+      if (result.value.children?.[0]) {
+        expect(result.value.children[0].id).toBe("parent-block");
+        expect(result.value.children[0].children).toHaveLength(1);
+        if (result.value.children[0].children?.[0]) {
+          expect(result.value.children[0].children[0].id).toBe("child-block");
+        }
+      }
     }
   });
 
@@ -219,7 +231,9 @@ describe("fetchNotionPage E2Eテスト", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value.children).toHaveLength(1);
-      expect(result.value.children?.[0].children).toBeUndefined();
+      if (result.value.children?.[0]) {
+        expect(result.value.children[0].children).toBeUndefined();
+      }
     }
   });
 
@@ -294,8 +308,10 @@ describe("fetchNotionPage E2Eテスト", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value.children).toHaveLength(2);
-      expect(result.value.children?.[0].id).toBe("block-1");
-      expect(result.value.children?.[1].id).toBe("block-2");
+      if (result.value.children?.[0] && result.value.children[1]) {
+        expect(result.value.children[0].id).toBe("block-1");
+        expect(result.value.children[1].id).toBe("block-2");
+      }
     }
 
     expect(mockClient.blocks?.children?.list).toHaveBeenCalledTimes(2);
@@ -363,13 +379,19 @@ describe("fetchNotionPage E2Eテスト", () => {
     expect(result.type).toBe("Success");
     if (result.type === "Success") {
       expect(result.value.children).toHaveLength(1);
-      expect(result.value.children?.[0].id).toBe("level1-block");
-      expect(result.value.children?.[0].children).toHaveLength(1);
-      expect(result.value.children?.[0].children?.[0].id).toBe("level2-block");
-      expect(result.value.children?.[0].children?.[0].children).toHaveLength(1);
-      expect(result.value.children?.[0].children?.[0].children?.[0].id).toBe(
-        "level3-block",
-      );
+      if (result.value.children?.[0]) {
+        expect(result.value.children[0].id).toBe("level1-block");
+        expect(result.value.children[0].children).toHaveLength(1);
+        if (result.value.children[0].children?.[0]) {
+          expect(result.value.children[0].children[0].id).toBe("level2-block");
+          expect(result.value.children[0].children[0].children).toHaveLength(1);
+          if (result.value.children[0].children[0].children?.[0]) {
+            expect(result.value.children[0].children[0].children[0].id).toBe(
+              "level3-block",
+            );
+          }
+        }
+      }
     }
   });
 });

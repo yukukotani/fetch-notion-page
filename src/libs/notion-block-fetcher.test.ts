@@ -174,7 +174,9 @@ describe("NotionBlockFetcher", () => {
       if (result.type === "Failure") {
         expect(result.error.kind).toBe("network_error");
         expect(result.error.message).toBe("Failed to fetch blocks");
-        expect(result.error.cause).toBe(error);
+        if (result.error.kind === "network_error") {
+          expect(result.error.cause).toBe(error);
+        }
       }
     });
   });

@@ -211,7 +211,9 @@ describe("buildBlockHierarchy", () => {
     expect(result.type).toBe("Failure");
     if (result.type === "Failure") {
       expect(result.error.kind).toBe("max_depth_exceeded");
-      expect(result.error.depth).toBe(1);
+      if (result.error.kind === "max_depth_exceeded") {
+        expect(result.error.depth).toBe(1);
+      }
     }
   });
 
@@ -235,7 +237,9 @@ describe("buildBlockHierarchy", () => {
     expect(result.type).toBe("Failure");
     if (result.type === "Failure") {
       expect(result.error.kind).toBe("fetch_failed");
-      expect(result.error.blockId).toBe("page-1");
+      if (result.error.kind === "fetch_failed") {
+        expect(result.error.blockId).toBe("page-1");
+      }
     }
   });
 

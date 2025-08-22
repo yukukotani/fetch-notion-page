@@ -550,7 +550,7 @@ describe("markdown-converter", () => {
       const result = convertPageToMarkdown(page);
 
       expect(result).toBe(
-        "# テストページ\n\n[📎 重要な文書.pdf](https://example.com/document.pdf)",
+        "# テストページ\n\n[重要な文書.pdf](https://example.com/document.pdf)",
       );
     });
 
@@ -582,7 +582,7 @@ describe("markdown-converter", () => {
       const result = convertPageToMarkdown(page);
 
       expect(result).toBe(
-        "# テストページ\n\n[🎬 Video](https://www.youtube.com/watch?v=example)",
+        "# テストページ\n\n[](https://www.youtube.com/watch?v=example)",
       );
     });
 

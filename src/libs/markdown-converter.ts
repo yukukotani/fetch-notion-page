@@ -156,9 +156,10 @@ function convertBlockToMarkdown(
     case "video": {
       if (block.video) {
         const url = getFileUrl(block.video);
-        const caption = block.video.caption
+        const captionText = block.video.caption
           ? extractRichTextContent(block.video.caption)
-          : "Video";
+          : "";
+        const caption = captionText || "Video";
         markdown = `[${caption}](${url})`;
       }
       break;
@@ -178,9 +179,10 @@ function convertBlockToMarkdown(
     case "file": {
       if (block.file) {
         const url = getFileUrl(block.file);
-        const caption = block.file.caption
+        const captionText = block.file.caption
           ? extractRichTextContent(block.file.caption)
-          : "File";
+          : "";
+        const caption = captionText || "File";
         markdown = `[${caption}](${url})`;
       }
       break;

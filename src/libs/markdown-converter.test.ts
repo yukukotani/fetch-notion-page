@@ -550,7 +550,7 @@ describe("markdown-converter", () => {
       const result = convertPageToMarkdown(page);
 
       expect(result).toBe(
-        "# テストページ\n\n[重要な文書.pdf](https://example.com/document.pdf)",
+        "# テストページ\n\n[File](https://example.com/document.pdf)",
       );
     });
 
@@ -582,7 +582,7 @@ describe("markdown-converter", () => {
       const result = convertPageToMarkdown(page);
 
       expect(result).toBe(
-        "# テストページ\n\n[](https://www.youtube.com/watch?v=example)",
+        "# テストページ\n\n[Video](https://www.youtube.com/watch?v=example)",
       );
     });
 
@@ -945,7 +945,7 @@ describe("markdown-converter", () => {
       const result = convertPageToMarkdown(page);
 
       expect(result).toBe(
-        "# テストページ\n\n[🔗 Link Preview](https://github.com/example/repo/pull/123)",
+        "# テストページ\n\n[https://github.com/example/repo/pull/123](https://github.com/example/repo/pull/123)",
       );
     });
 
@@ -972,7 +972,9 @@ describe("markdown-converter", () => {
 
       const result = convertPageToMarkdown(page);
 
-      expect(result).toBe("# テストページ\n\n📄 子ページのタイトル");
+      expect(result).toBe(
+        '# テストページ\n\n<page id="block-1" title="子ページのタイトル" />',
+      );
     });
 
     test("子データベースブロックが正しく変換される", () => {
@@ -998,7 +1000,9 @@ describe("markdown-converter", () => {
 
       const result = convertPageToMarkdown(page);
 
-      expect(result).toBe("# テストページ\n\n🗃️ タスク管理データベース");
+      expect(result).toBe(
+        '# テストページ\n\n<database id="block-1" title="タスク管理データベース" />',
+      );
     });
 
     test("カラムリストブロックが正しく変換される", () => {

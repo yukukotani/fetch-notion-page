@@ -1,5 +1,7 @@
 # fetch-notion-page
 
+![NPM Version](https://img.shields.io/npm/v/fetch-notion-page)
+
 Fetch Notion page contents as JSON or Markdown.
 
 ## Features

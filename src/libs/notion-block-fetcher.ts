@@ -2,7 +2,7 @@ import type { Client } from "@notionhq/client";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
 import { Result } from "@praha/byethrow";
 import type { NotionApiError } from "../types/index.js";
-import { retryOnRateLimit, type RetryOptions } from "./retry-utils.js";
+import { type RetryOptions, retryOnRateLimit } from "./retry-utils.js";
 
 export class NotionBlockFetcher {
   constructor(

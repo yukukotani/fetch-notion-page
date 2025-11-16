@@ -2,6 +2,7 @@ import type { Client } from "@notionhq/client";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
 import { Result } from "@praha/byethrow";
 import type { NotionApiError } from "../types/index.js";
+import { retryOnRateLimit } from "./retry-utils.js";
 
 export class NotionBlockFetcher {
   constructor(private readonly client: Client) {}
@@ -27,7 +28,9 @@ export class NotionBlockFetcher {
             params.start_cursor = cursor;
           }
 
-          const response = await this.client.blocks.children.list(params);
+          const response = await retryOnRateLimit(async () => {
+            return await this.client.blocks.children.list(params);
+          });
 
           blocks.push(...(response.results as BlockObjectResponse[]));
           cursor = response.next_cursor ?? undefined;

@@ -1,7 +1,4 @@
-import {
-  APIErrorCode,
-  APIResponseError,
-} from "@notionhq/client";
+import { APIErrorCode, APIResponseError } from "@notionhq/client";
 import { describe, expect, test, vi } from "vitest";
 import { retryOnRateLimit } from "./retry-utils.js";
 
@@ -12,7 +9,8 @@ function createRateLimitError(
   retryAfter?: string,
   headers?: Record<string, string> | Headers,
 ): APIResponseError {
-  const errorHeaders = headers || (retryAfter ? { "retry-after": retryAfter } : {});
+  const errorHeaders =
+    headers || (retryAfter ? { "retry-after": retryAfter } : {});
   return new APIResponseError({
     code: APIErrorCode.RateLimited,
     status: 429,
@@ -51,9 +49,9 @@ describe("retryOnRateLimit", () => {
 
     const fn = vi.fn().mockRejectedValue(rateLimitError);
 
-    await expect(
-      retryOnRateLimit(fn, { maxRetries: 2 }),
-    ).rejects.toThrow("Rate limited");
+    await expect(retryOnRateLimit(fn, { maxRetries: 2 })).rejects.toThrow(
+      "Rate limited",
+    );
     expect(fn).toHaveBeenCalledTimes(3); // initial + 2 retries
   });
 

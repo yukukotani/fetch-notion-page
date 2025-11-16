@@ -9,7 +9,8 @@
   "ignore": [
     "dist/**",
     "node_modules/**",
-    "coverage/**"
+    "coverage/**",
+    ".github/**"
   ],
   "ignoreDependencies": [],
   "vitest": {

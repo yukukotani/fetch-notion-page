@@ -2,10 +2,13 @@ import type { Client } from "@notionhq/client";
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
 import { Result } from "@praha/byethrow";
 import type { NotionApiError } from "../types/index.js";
-import { retryOnRateLimit } from "./retry-utils.js";
+import { retryOnRateLimit, type RetryOptions } from "./retry-utils.js";
 
 export class NotionPageFetcher {
-  constructor(private client: Client) {}
+  constructor(
+    private client: Client,
+    private retryOptions?: RetryOptions,
+  ) {}
 
   async fetchPage(
     pageId: string,
@@ -14,7 +17,7 @@ export class NotionPageFetcher {
       try: async (): Promise<PageObjectResponse> => {
         const response = await retryOnRateLimit(async () => {
           return await this.client.pages.retrieve({ page_id: pageId });
-        });
+        }, this.retryOptions);
         return response as PageObjectResponse;
       },
       catch: (error: unknown): NotionApiError => this.handleError(error),

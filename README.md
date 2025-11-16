@@ -33,6 +33,9 @@ fetch-notion-page <page-url>
 
 # Or fetch a page as Markdown
 fetch-notion-page <page-url> --format markdown
+
+# Specify maximum retries for rate limit errors
+fetch-notion-page <page-url> --max-retries 3
 ```
 
 ### Programmatic Usage
@@ -43,7 +46,8 @@ import { fetchNotionPage, convertPageToMarkdown } from 'fetch-notion-page';
 // Fetch a Notion page with all its child blocks
 const result = await fetchNotionPage('your-page-id', {
   apiKey: 'your-api-key',
-  maxDepth: 10 // Optional: limit recursion depth
+  maxDepth: 10, // Optional: limit recursion depth
+  maxRetries: 3 // Optional: maximum retries for rate limit errors (default: 3)
 });
 
 if (result.type === 'Success') {
@@ -68,6 +72,7 @@ Recursively fetches a Notion page and all its child blocks.
 - `options` (object):
   - `apiKey` (string): Your Notion integration API key
   - `maxDepth` (number, optional): Maximum recursion depth (default: 10)
+  - `maxRetries` (number, optional): Maximum number of retries for rate limit errors (default: 3)
 
 **Returns:**
 - `Result<PageWithChildren, FetchNotionPageError>`: A result object containing either the page data or error information

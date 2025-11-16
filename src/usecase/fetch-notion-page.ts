@@ -13,6 +13,7 @@ import type {
 type FetchNotionPageOptions = {
   apiKey: string;
   maxDepth?: number;
+  maxRetries?: number;
   client?: Client; // テスト用のクライアント注入
 };
 
@@ -47,8 +48,12 @@ export async function fetchNotionPage(
     try: async () => {
       const client =
         options.client || new NotionClient({ auth: options.apiKey });
-      const blockFetcher = new NotionBlockFetcher(client);
-      const pageFetcher = new NotionPageFetcher(client);
+      const retryOptions =
+        options.maxRetries !== undefined
+          ? { maxRetries: options.maxRetries }
+          : undefined;
+      const blockFetcher = new NotionBlockFetcher(client, retryOptions);
+      const pageFetcher = new NotionPageFetcher(client, retryOptions);
 
       // ページ情報を取得
       const pageResult = await pageFetcher.fetchPage(pageId);

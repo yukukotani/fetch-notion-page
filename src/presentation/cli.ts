@@ -6,6 +6,7 @@ import { fetchNotionPage } from "../usecase/fetch-notion-page.js";
 type CliOptions = {
   apiKey?: string | undefined;
   maxDepth?: number | undefined;
+  maxRetries?: number | undefined;
   format?: "json" | "markdown" | undefined;
 };
 
@@ -26,6 +27,7 @@ Arguments:
 Options:
   --api-key, -k <key>       Notion API key (overrides NOTION_API_KEY env var)
   --max-depth, -d <depth>   Maximum depth for recursive block fetching (default: 10)
+  --max-retries, -r <num>   Maximum number of retries for rate limit errors (default: 3)
   --format, -f <format>     Output format: json (default) or markdown
   --help, -h                Show this help message
 
@@ -49,6 +51,10 @@ function parseCliArgs(args: string[]): {
         "max-depth": {
           type: "string",
           short: "d",
+        },
+        "max-retries": {
+          type: "string",
+          short: "r",
         },
         format: {
           type: "string",
@@ -77,6 +83,11 @@ function parseCliArgs(args: string[]): {
     if (values["max-depth"]) {
       const depth = parseInt(values["max-depth"], 10);
       options.maxDepth = Number.isNaN(depth) ? 10 : depth;
+    }
+
+    if (values["max-retries"]) {
+      const retries = parseInt(values["max-retries"], 10);
+      options.maxRetries = Number.isNaN(retries) ? undefined : retries;
     }
 
     if (values.format) {
@@ -131,10 +142,19 @@ export async function runCli(args: string[]): Promise<void> {
   const format = options.format ?? "json";
 
   try {
-    const fetchResult = await fetchNotionPage(pageId, {
+    const fetchOptions: {
+      apiKey: string;
+      maxDepth: number;
+      maxRetries?: number;
+    } = {
       apiKey,
       maxDepth,
-    });
+    };
+    if (options.maxRetries !== undefined) {
+      fetchOptions.maxRetries = options.maxRetries;
+    }
+
+    const fetchResult = await fetchNotionPage(pageId, fetchOptions);
 
     if (fetchResult.type === "Success") {
       if (format === "markdown") {
